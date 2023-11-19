@@ -1,6 +1,7 @@
 package com.nx.nxbi.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.model.vo.PostVO;
 import com.nx.nxbi.common.BaseResponse;
 import com.nx.nxbi.common.ErrorCode;
@@ -11,7 +12,6 @@ import com.nx.nxbi.model.dto.post.PostQueryRequest;
 import com.nx.nxbi.model.dto.postfavour.PostFavourAddRequest;
 import com.nx.nxbi.model.dto.postfavour.PostFavourQueryRequest;
 import com.nx.nxbi.model.entity.Post;
-import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.service.PostFavourService;
 import com.nx.nxbi.service.PostService;
 import com.nx.nxbi.service.UserService;
@@ -26,8 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 帖子收藏接口
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * 
+ * 
  */
 @RestController
 @RequestMapping("/post_favour")

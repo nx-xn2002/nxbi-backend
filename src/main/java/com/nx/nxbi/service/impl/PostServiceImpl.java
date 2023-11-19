@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.nx.nxbi.constant.CommonConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
+import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.model.vo.PostVO;
 import com.nx.nxbi.model.vo.UserVO;
 import com.nx.nxbi.service.UserService;
@@ -19,7 +20,6 @@ import com.nx.nxbi.model.dto.post.PostQueryRequest;
 import com.nx.nxbi.model.entity.Post;
 import com.nx.nxbi.model.entity.PostFavour;
 import com.nx.nxbi.model.entity.PostThumb;
-import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.service.PostService;
 import com.nx.nxbi.utils.SqlUtils;
 import java.util.ArrayList;
@@ -50,8 +50,8 @@ import org.springframework.stereotype.Service;
 /**
  * 帖子服务实现
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * 
+ * 
  */
 @Service
 @Slf4j
