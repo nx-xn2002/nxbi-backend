@@ -8,26 +8,30 @@ import com.nx.nxbi.common.DeleteRequest;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.common.ResultUtils;
 import com.nx.nxbi.constant.CommonConstant;
+import com.nx.nxbi.constant.FileConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
-import com.nx.nxbi.model.dto.chart.ChartAddRequest;
-import com.nx.nxbi.model.dto.chart.ChartEditRequest;
-import com.nx.nxbi.model.dto.chart.ChartQueryRequest;
-import com.nx.nxbi.model.dto.chart.ChartUpdateRequest;
+import com.nx.nxbi.model.dto.chart.*;
+import com.nx.nxbi.model.dto.file.UploadFileRequest;
 import com.nx.nxbi.model.entity.Chart;
 import com.nx.nxbi.model.entity.User;
+import com.nx.nxbi.model.enums.FileUploadBizEnum;
 import com.nx.nxbi.service.ChartService;
 import com.nx.nxbi.service.UserService;
+import com.nx.nxbi.utils.ExcelUtils;
 import com.nx.nxbi.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 
 /**
  * 图表信息接口
@@ -146,7 +150,7 @@ public class ChartController {
      */
     @PostMapping("/my/list/page")
     public BaseResponse<Page<Chart>> listMyChartByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-                                                         HttpServletRequest request) {
+                                                       HttpServletRequest request) {
         if (chartQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -199,6 +203,8 @@ public class ChartController {
         Long userId = chartQueryRequest.getUserId();
         String goal = chartQueryRequest.getGoal();
         String chartType = chartQueryRequest.getChartType();
+        String name = chartQueryRequest.getName();
+
 
         String sortField = chartQueryRequest.getSortField();
         String sortOrder = chartQueryRequest.getSortOrder();
@@ -207,10 +213,64 @@ public class ChartController {
         queryWrapper.eq(StringUtils.isNotBlank(goal), "goal", goal);
         queryWrapper.eq(StringUtils.isNotBlank(chartType), "chartType", chartType);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
+        queryWrapper.like(StringUtils.isNotBlank(name), "name", name);
 
         queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
+    }
+
+    /**
+     * 智能分析
+     *
+     * @return {@link BaseResponse }<{@link String }>
+     * @author nx
+     */
+    @PostMapping("/gen")
+    public BaseResponse<String> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                             GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+        //用户输入
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String chartType = genChartByAiRequest.getChartType();
+
+        //校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+
+        //用户输入
+        StringBuilder userInput = new StringBuilder();
+        userInput.append("你是一个数据分析师,接下来我会给你我的分析目标和数据,请告诉我分析结论\n");
+        userInput.append("分析目标:").append(goal).append("\n");
+        //压缩后的数据
+        String data = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append("数据:").append(data).append("\n");
+        return ResultUtils.success(userInput.toString());
+//
+//
+//
+//        //读取用户输入的Excel文件，并进行处理
+//        User loginUser = userService.getLoginUser(request);
+//        // 文件目录：根据业务、用户来划分
+//        String uuid = RandomStringUtils.randomAlphanumeric(8);
+//        String filename = uuid + "-" + multipartFile.getOriginalFilename();
+//        File file = null;
+//        try {
+//
+//            // 返回可访问地址
+//            return ResultUtils.success("");
+//        } catch (Exception e) {
+//            //log.error("file upload error, filepath = " + filepath, e);
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+//        } finally {
+//            if (file != null) {
+//                // 删除临时文件
+//                boolean delete = file.delete();
+//                if (!delete) {
+//                  //  log.error("file delete error, filepath = {}", filepath);
+//                }
+//            }
+//        }
     }
 }
