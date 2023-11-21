@@ -8,22 +8,20 @@ import com.nx.nxbi.common.DeleteRequest;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.common.ResultUtils;
 import com.nx.nxbi.constant.CommonConstant;
-import com.nx.nxbi.constant.FileConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
+import com.nx.nxbi.manager.WenXinManager;
 import com.nx.nxbi.model.dto.chart.*;
-import com.nx.nxbi.model.dto.file.UploadFileRequest;
 import com.nx.nxbi.model.entity.Chart;
 import com.nx.nxbi.model.entity.User;
-import com.nx.nxbi.model.enums.FileUploadBizEnum;
+import com.nx.nxbi.model.vo.BiResponse;
 import com.nx.nxbi.service.ChartService;
 import com.nx.nxbi.service.UserService;
 import com.nx.nxbi.utils.ExcelUtils;
 import com.nx.nxbi.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 图表信息接口
@@ -48,7 +47,8 @@ public class ChartController {
 
     @Resource
     private UserService userService;
-
+    @Resource
+    private WenXinManager wenXinManager;
 
     // region 增删改查
 
@@ -228,49 +228,56 @@ public class ChartController {
      * @author nx
      */
     @PostMapping("/gen")
-    public BaseResponse<String> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
-                                             GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         //用户输入
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
-
+        //拼接目标
+        if (StringUtils.isNotBlank(chartType)) {
+            goal = goal + ",请使用" + chartType;
+        }
         //校验
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
 
         //用户输入
         StringBuilder userInput = new StringBuilder();
-        userInput.append("你是一个数据分析师,接下来我会给你我的分析目标和数据,请告诉我分析结论\n");
-        userInput.append("分析目标:").append(goal).append("\n");
+        userInput.append("分析目标:{").append(goal).append("}\\n");
         //压缩后的数据
         String data = ExcelUtils.excelToCsv(multipartFile);
-        userInput.append("数据:").append(data).append("\n");
-        return ResultUtils.success(userInput.toString());
-//
-//
-//
-//        //读取用户输入的Excel文件，并进行处理
-//        User loginUser = userService.getLoginUser(request);
-//        // 文件目录：根据业务、用户来划分
-//        String uuid = RandomStringUtils.randomAlphanumeric(8);
-//        String filename = uuid + "-" + multipartFile.getOriginalFilename();
-//        File file = null;
-//        try {
-//
-//            // 返回可访问地址
-//            return ResultUtils.success("");
-//        } catch (Exception e) {
-//            //log.error("file upload error, filepath = " + filepath, e);
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
-//        } finally {
-//            if (file != null) {
-//                // 删除临时文件
-//                boolean delete = file.delete();
-//                if (!delete) {
-//                  //  log.error("file delete error, filepath = {}", filepath);
-//                }
-//            }
-//        }
+        userInput.append("原始数据:{").append(data).append("}\\n");
+        System.out.println(userInput);
+        String chat = wenXinManager.chat(userInput.toString());
+        String[] strings = handlerBiResult(chat);
+
+        BiResponse biResponse = new BiResponse();
+        biResponse.setGenChart(strings[0]);
+        biResponse.setGenResult(strings[1]);
+
+        return ResultUtils.success(biResponse);
+    }
+
+    public String[] handlerBiResult(String chat) {
+        String genChart = null, genResult = null;
+
+        String regex1 = "var option = \\{[\\s\\S]*?};";
+        Pattern pattern1 = Pattern.compile(regex1);
+        Matcher matcher1 = pattern1.matcher(chat);
+        if (matcher1.find()) {
+            genChart = matcher1.group();
+        }
+
+        String regex2 = "数据分析结论：(.*)";
+        Pattern pattern2 = Pattern.compile(regex2);
+        Matcher matcher2 = pattern2.matcher(chat);
+        if (matcher2.find()) {
+            genResult = matcher2.group();
+        }
+        if (genChart == null || genResult == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "ai 响应异常");
+        }
+        return new String[]{genChart, genResult};
     }
 }

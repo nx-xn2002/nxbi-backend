@@ -59,6 +59,17 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+wenxin:
+  api-key: L2fM11ItK619PUZXOLZ4sDfK
+  secret-key: IiHZ6A3oftxI9qYecuukXzF2xgCKXkQZ
+# 对象存储
+# todo 需替换配置
+cos:
+  client:
+    accessKey: xxx
+    secretKey: xxx
+    region: xxx
+    bucket: xxx
 # 微信相关
 wx:
   # 微信公众平台
@@ -80,11 +91,3 @@ wx:
   open:
     appId: xxx
     appSecret: xxx
-# 对象存储
-# todo 需替换配置
-cos:
-  client:
-    accessKey: xxx
-    secretKey: xxx
-    region: xxx
-    bucket: xxx
