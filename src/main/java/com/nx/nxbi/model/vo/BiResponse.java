@@ -17,4 +17,8 @@ public class BiResponse {
      * 分析结果
      */
     private String genResult;
+    /**
+     * 分析图表Id
+     */
+    private Long chartId;
 }

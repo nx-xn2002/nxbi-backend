@@ -248,25 +248,45 @@ public class ChartController {
         //压缩后的数据
         String data = ExcelUtils.excelToCsv(multipartFile);
         userInput.append("原始数据:{").append(data).append("}\\n");
-        System.out.println(userInput);
         String chat = wenXinManager.chat(userInput.toString());
         String[] strings = handlerBiResult(chat);
 
         BiResponse biResponse = new BiResponse();
         biResponse.setGenChart(strings[0]);
         biResponse.setGenResult(strings[1]);
-
+        User loginUser = userService.getLoginUser(request);
+        Chart chart = new Chart();
+        chart.setName(name);
+        chart.setGoal(goal);
+        chart.setChartData(data);
+        chart.setChartType(chartType);
+        chart.setGenChart(strings[0]);
+        chart.setGenResult(strings[1]);
+        chart.setUserId(loginUser.getId());
+        boolean saveResult = chartService.save(chart);
+        biResponse.setChartId(chart.getId());
+        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         return ResultUtils.success(biResponse);
     }
 
     public String[] handlerBiResult(String chat) {
         String genChart = null, genResult = null;
 
-        String regex1 = "var option = \\{[\\s\\S]*?};";
-        Pattern pattern1 = Pattern.compile(regex1);
-        Matcher matcher1 = pattern1.matcher(chat);
-        if (matcher1.find()) {
-            genChart = matcher1.group();
+        int begin = -1, end = -1;
+        for (int i = 0; i < chat.length(); i++) {
+            if (chat.charAt(i) == '{') {
+                begin = i;
+                break;
+            }
+        }
+        for (int i = chat.length() - 1; i >= 0; i--) {
+            if (chat.charAt(i) == '}') {
+                end = i + 1;
+                break;
+            }
+        }
+        if (begin != -1 && end != -1) {
+            genChart = chat.substring(begin, end);
         }
 
         String regex2 = "数据分析结论：(.*)";
@@ -275,7 +295,12 @@ public class ChartController {
         if (matcher2.find()) {
             genResult = matcher2.group();
         }
-        if (genChart == null || genResult == null) {
+        if (genResult != null) {
+            genResult = genResult.replaceAll("数据分析结论：", "");
+            genResult = genResult.replaceAll("根据提供的原始数据，我们创建了一个Echarts的option配置对象，将数据进行了可视化。", "");
+        }
+        if (genChart == null && genResult == null) {
+            log.info(chat);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "ai 响应异常");
         }
         return new String[]{genChart, genResult};
