@@ -233,10 +233,15 @@ public class ChartController {
         //用户输入
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
+        String originGoal = goal;
         String chartType = genChartByAiRequest.getChartType();
+        String originChartType = null;
         //拼接目标
         if (StringUtils.isNotBlank(chartType)) {
+            originChartType = chartType;
             goal = goal + ",请使用" + chartType;
+        } else {
+            originChartType = "默认";
         }
         //校验
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
@@ -257,9 +262,9 @@ public class ChartController {
         User loginUser = userService.getLoginUser(request);
         Chart chart = new Chart();
         chart.setName(name);
-        chart.setGoal(goal);
+        chart.setGoal(originGoal);
         chart.setChartData(data);
-        chart.setChartType(chartType);
+        chart.setChartType(originChartType);
         chart.setGenChart(strings[0]);
         chart.setGenResult(strings[1]);
         chart.setUserId(loginUser.getId());
