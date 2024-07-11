@@ -18,13 +18,13 @@
 
 #### 后端
 
-1. Spring Boot（万用java后端模板，快速搭建基础框架）
+1. Spring Boot
 2. MySQL数据库
 3. MyBatis Plus数据访问框架
 4. AI能力（Open AI接口开发/现成AI接口）
 5. Excel上传和数据的解析（Easy Excel）
 6. Swagger + Knife4j项目接口文档
-7. Hutool工具库
+7. Hutool 工具库
 
 
 
