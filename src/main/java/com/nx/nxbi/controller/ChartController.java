@@ -50,8 +50,6 @@ public class ChartController {
     @Resource
     private WenXinManager wenXinManager;
 
-    // region 增删改查
-
     /**
      * 创建
      *

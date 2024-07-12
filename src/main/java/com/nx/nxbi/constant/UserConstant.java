@@ -3,8 +3,7 @@ package com.nx.nxbi.constant;
 /**
  * 用户常量
  *
- * 
- * 
+ * @author Ni Xiang
  */
 public interface UserConstant {
 
@@ -29,6 +28,4 @@ public interface UserConstant {
      * 被封号
      */
     String BAN_ROLE = "ban";
-
-    // endregion
 }

@@ -3,8 +3,7 @@ package com.nx.nxbi.constant;
 /**
  * 通用常量
  *
- * 
- * 
+ * @author Ni Xiang
  */
 public interface CommonConstant {
 

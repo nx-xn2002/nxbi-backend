@@ -2,14 +2,13 @@ package com.nx.nxbi.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.nx.nxbi.model.dto.user.UserQueryRequest;
+import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.model.vo.LoginUserVO;
 import com.nx.nxbi.model.vo.UserVO;
-import com.nx.nxbi.model.dto.user.UserQueryRequest;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
-import com.nx.nxbi.model.entity.User;
+import java.util.List;
 /**
  * 用户服务
  */

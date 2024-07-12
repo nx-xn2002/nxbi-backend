@@ -1,42 +1,32 @@
 package com.nx.nxbi.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.nx.nxbi.model.entity.User;
-import com.nx.nxbi.model.vo.LoginUserVO;
-import com.nx.nxbi.model.vo.UserVO;
 import com.nx.nxbi.annotation.AuthCheck;
 import com.nx.nxbi.common.BaseResponse;
 import com.nx.nxbi.common.DeleteRequest;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.common.ResultUtils;
-import com.nx.nxbi.config.WxOpenConfig;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
-import com.nx.nxbi.model.dto.user.UserAddRequest;
-import com.nx.nxbi.model.dto.user.UserLoginRequest;
-import com.nx.nxbi.model.dto.user.UserQueryRequest;
-import com.nx.nxbi.model.dto.user.UserRegisterRequest;
-import com.nx.nxbi.model.dto.user.UserUpdateMyRequest;
-import com.nx.nxbi.model.dto.user.UserUpdateRequest;
+import com.nx.nxbi.model.dto.user.*;
+import com.nx.nxbi.model.entity.User;
+import com.nx.nxbi.model.vo.LoginUserVO;
+import com.nx.nxbi.model.vo.UserVO;
 import com.nx.nxbi.service.UserService;
-import java.util.List;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 用户接口
  *
- * 
- * 
+ * @author Ni Xiang
  */
 @RestController
 @RequestMapping("/user")
@@ -45,11 +35,6 @@ public class UserController {
 
     @Resource
     private UserService userService;
-
-    @Resource
-    private WxOpenConfig wxOpenConfig;
-
-    // region 登录相关
 
     /**
      * 用户注册
@@ -80,7 +65,8 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
-    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<LoginUserVO> userLogin(@RequestBody UserLoginRequest userLoginRequest,
+                                               HttpServletRequest request) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -172,7 +158,7 @@ public class UserController {
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest,
-            HttpServletRequest request) {
+                                            HttpServletRequest request) {
         if (userUpdateRequest == null || userUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -225,7 +211,7 @@ public class UserController {
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Page<User>> listUserByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
+                                                   HttpServletRequest request) {
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
         Page<User> userPage = userService.page(new Page<>(current, size),
@@ -242,7 +228,7 @@ public class UserController {
      */
     @PostMapping("/list/page/vo")
     public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest,
-            HttpServletRequest request) {
+                                                       HttpServletRequest request) {
         if (userQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -269,7 +255,7 @@ public class UserController {
      */
     @PostMapping("/update/my")
     public BaseResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpServletRequest request) {
+                                              HttpServletRequest request) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

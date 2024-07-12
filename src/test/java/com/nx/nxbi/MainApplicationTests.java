@@ -1,9 +1,5 @@
 package com.nx.nxbi;
 
-import com.nx.nxbi.config.WxOpenConfig;
-
-import javax.annotation.Resource;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

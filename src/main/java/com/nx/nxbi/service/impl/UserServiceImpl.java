@@ -3,34 +3,31 @@ package com.nx.nxbi.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.constant.CommonConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.mapper.UserMapper;
+import com.nx.nxbi.model.dto.user.UserQueryRequest;
 import com.nx.nxbi.model.entity.User;
+import com.nx.nxbi.model.enums.UserRoleEnum;
 import com.nx.nxbi.model.vo.LoginUserVO;
 import com.nx.nxbi.model.vo.UserVO;
-import com.nx.nxbi.common.ErrorCode;
-import com.nx.nxbi.model.dto.user.UserQueryRequest;
-import com.nx.nxbi.model.enums.UserRoleEnum;
 import com.nx.nxbi.service.UserService;
 import com.nx.nxbi.utils.SqlUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 用户服务实现
- *
- * 
- * 
  */
 @Service
 @Slf4j
@@ -109,7 +106,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
         return this.getLoginUserVO(user);
     }
-
 
 
     /**

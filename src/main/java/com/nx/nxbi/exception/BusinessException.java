@@ -5,8 +5,7 @@ import com.nx.nxbi.common.ErrorCode;
 /**
  * 自定义异常类
  *
- * 
- * 
+ * @author Ni Xiang
  */
 public class BusinessException extends RuntimeException {
 

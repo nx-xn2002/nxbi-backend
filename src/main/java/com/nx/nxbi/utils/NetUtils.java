@@ -6,8 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 网络工具类
  *
- * 
- * 
+ * @author Ni Xiang
  */
 public class NetUtils {
 
