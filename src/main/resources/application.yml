@@ -20,13 +20,6 @@ spring:
     url: jdbc:mysql://localhost:3306/nxbi
     username: root
     password: NXiang2002
-  # Redis 配置
-#  redis:
-#    database: 1
-#    host: localhost
-#    port: 6379
-#    timeout: 5000
-#    password: 123456
   # 文件上传
   servlet:
     multipart:
@@ -51,5 +44,5 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 wenxin:
-  api-key: L2fM11ItK619PUZXOLZ4sDfK
-  secret-key: IiHZ6A3oftxI9qYecuukXzF2xgCKXkQZ
+  api-key: xxxxx
+  secret-key: xxxxx

@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WenXinManager {
     @Value("${wenxin.api-key}")
-    public String API_KEY;
+    public static String API_KEY;
     @Value("${wenxin.secret-key}")
-    public String SECRET_KEY;
+    public static String SECRET_KEY;
 
-    private OkHttpClient HTTP_CLIENT = new OkHttpClient();
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
 
     public String chat(String message) {
         HTTP_CLIENT.setConnectTimeout(20, TimeUnit.SECONDS);
