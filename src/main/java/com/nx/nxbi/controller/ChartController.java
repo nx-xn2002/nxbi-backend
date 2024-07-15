@@ -12,6 +12,7 @@ import com.nx.nxbi.constant.CommonConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
+import com.nx.nxbi.manager.GuavaRateLimiterManager;
 import com.nx.nxbi.manager.WenXinManager;
 import com.nx.nxbi.model.dto.chart.*;
 import com.nx.nxbi.model.entity.Chart;
@@ -52,6 +53,8 @@ public class ChartController {
     private UserService userService;
     @Resource
     private WenXinManager wenXinManager;
+    @Resource
+    private GuavaRateLimiterManager guavaRateLimiterManager;
 
     /**
      * 创建
@@ -231,6 +234,9 @@ public class ChartController {
     @PostMapping("/gen")
     public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
                                                  GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        //限流
+        guavaRateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         //用户输入
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
@@ -270,7 +276,6 @@ public class ChartController {
         BiResponse biResponse = new BiResponse();
         biResponse.setGenChart(strings[0]);
         biResponse.setGenResult(strings[1]);
-        User loginUser = userService.getLoginUser(request);
         Chart chart = new Chart();
         chart.setName(name);
         chart.setGoal(originGoal);
