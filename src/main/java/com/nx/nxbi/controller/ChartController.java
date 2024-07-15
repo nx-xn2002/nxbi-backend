@@ -1,5 +1,6 @@
 package com.nx.nxbi.controller;
 
+import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nx.nxbi.annotation.AuthCheck;
@@ -29,6 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -244,6 +247,16 @@ public class ChartController {
         //校验
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        //校验文件
+        long size = multipartFile.getSize();
+        String originalFilename = multipartFile.getOriginalFilename();
+        //校验文件大小
+        final long oneMb = 1024 * 1024;
+        ThrowUtils.throwIf(size > 5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
+        //校验文件后缀
+        String suffix = FileUtil.getSuffix(originalFilename);
+        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
 
         //用户输入
         StringBuilder userInput = new StringBuilder();
@@ -291,17 +304,13 @@ public class ChartController {
         if (begin != -1 && end != -1) {
             genChart = chat.substring(begin, end);
         }
-
-        String regex2 = "数据分析结论：(.*)";
-        Pattern pattern2 = Pattern.compile(regex2);
-        Matcher matcher2 = pattern2.matcher(chat);
-        if (matcher2.find()) {
-            genResult = matcher2.group();
+        for (int i = end; i < chat.length(); i++) {
+            if (chat.charAt(i) == '：') {
+                genResult = chat.substring(i + 1);
+                break;
+            }
         }
-        if (genResult != null) {
-            genResult = genResult.replaceAll("数据分析结论：", "");
-            genResult = genResult.replaceAll("根据提供的原始数据，我们创建了一个Echarts的option配置对象，将数据进行了可视化。", "");
-        }
+        log.info("数据分析结论:", genResult);
         if (genChart == null && genResult == null) {
             log.info(chat);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "ai 响应异常");
