@@ -44,5 +44,14 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 wenxin:
-  api-key: L2fM11ItK619PUZXOLZ4sDfK
-  secret-key: IiHZ6A3oftxI9qYecuukXzF2xgCKXkQZ
+  api-key: xxxxx
+  secret-key: xxxxx
+
+# 限流器缓存配置
+rate-limiter:
+  # 初始容量
+  initial-capacity: 5
+  # 最大容量
+  maximum-size: 20
+  # 每秒请求数
+  permits-per-second: 2.0

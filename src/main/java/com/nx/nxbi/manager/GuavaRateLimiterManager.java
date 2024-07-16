@@ -10,6 +10,7 @@ import com.nx.nxbi.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -20,21 +21,8 @@ import java.util.concurrent.ExecutionException;
 @Service
 @Slf4j
 public class GuavaRateLimiterManager {
-    /**
-     * 限流器与 key 的映射关系
-     */
-    private final LoadingCache<String, RateLimiter> cache = CacheBuilder.newBuilder()
-            //初始容量
-            .initialCapacity(5)
-            //最大容量
-            .maximumSize(20)
-            .build(new CacheLoader<String, RateLimiter>() {
-                //加载方法，当 get 无法获取到指定的 RateLimiter 时，将其加载到缓存里
-                @Override
-                public RateLimiter load(String key) throws Exception {
-                    return RateLimiter.create(2.0);
-                }
-            });
+    @Resource
+    private LoadingCache<String, RateLimiter> rateLimiterCache;
 
     /**
      * 限流操作
@@ -43,7 +31,7 @@ public class GuavaRateLimiterManager {
      * @author Ni Xiang
      */
     public void doRateLimit(String key) throws ExecutionException {
-        RateLimiter limiter = cache.get(key);
+        RateLimiter limiter = rateLimiterCache.get(key);
         boolean canDo = limiter.tryAcquire();
         if (!canDo) {
             throw new BusinessException(ErrorCode.TOO_MANY_REQUEST);
