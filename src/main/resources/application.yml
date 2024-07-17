@@ -55,3 +55,14 @@ rate-limiter:
   maximum-size: 20
   # 每秒请求数
   permits-per-second: 2.0
+
+# 线程池配置
+thread-pool:
+  # 核心线程数
+  core-pool-size: 5
+  # 最大线程数
+  maximum-pool-size: 10
+  # 非核心线程最大存活时间
+  keep-alive-time: 30
+  # 任务队列大小
+  work-queue-size: 10
