@@ -27,8 +27,8 @@ public class WenXinManager {
     private static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
 
     public String chat(String message) {
-        HTTP_CLIENT.setConnectTimeout(30, TimeUnit.SECONDS);
-        HTTP_CLIENT.setReadTimeout(30, TimeUnit.SECONDS);
+        HTTP_CLIENT.setConnectTimeout(60, TimeUnit.SECONDS);
+        HTTP_CLIENT.setReadTimeout(60, TimeUnit.SECONDS);
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType,
                 "{\"messages\":[{\"role\":\"user\",\"content\":\"" + message + "\"}],\"temperature\":0.2," +
