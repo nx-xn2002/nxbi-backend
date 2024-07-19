@@ -8,6 +8,7 @@ import com.nx.nxbi.common.BaseResponse;
 import com.nx.nxbi.common.DeleteRequest;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.common.ResultUtils;
+import com.nx.nxbi.constant.ChartConstant;
 import com.nx.nxbi.constant.CommonConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
@@ -33,9 +34,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 图表信息接口
@@ -56,6 +57,8 @@ public class ChartController {
     private WenXinManager wenXinManager;
     @Resource
     private GuavaRateLimiterManager guavaRateLimiterManager;
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
 
     /**
      * 创建
@@ -227,7 +230,7 @@ public class ChartController {
     }
 
     /**
-     * 智能分析
+     * 智能分析（同步）
      *
      * @return {@link BaseResponse }<{@link String }>
      * @author nx
@@ -243,7 +246,7 @@ public class ChartController {
         String goal = genChartByAiRequest.getGoal();
         String originGoal = goal;
         String chartType = genChartByAiRequest.getChartType();
-        String originChartType = null;
+        String originChartType;
         //拼接目标
         if (StringUtils.isNotBlank(chartType)) {
             originChartType = chartType;
@@ -254,16 +257,9 @@ public class ChartController {
         //校验
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+
         //校验文件
-        long size = multipartFile.getSize();
-        String originalFilename = multipartFile.getOriginalFilename();
-        //校验文件大小
-        final long oneMb = 1024 * 1024;
-        ThrowUtils.throwIf(size > 5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
-        //校验文件后缀
-        String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
-        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
+        checkMultipartFile(multipartFile);
 
         //用户输入
         StringBuilder userInput = new StringBuilder();
@@ -271,9 +267,10 @@ public class ChartController {
         //压缩后的数据
         String data = ExcelUtils.excelToCsv(multipartFile);
         userInput.append("原始数据:{").append(data).append("}\\n");
-        String chat = wenXinManager.chat(userInput.toString());
-        String[] strings = handlerBiResult(chat);
 
+        //开始分析
+        String chat = wenXinManager.chat(userInput.toString());
+        String[] strings = handleBiResult(chat);
         BiResponse biResponse = new BiResponse();
         biResponse.setGenChart(strings[0]);
         biResponse.setGenResult(strings[1]);
@@ -285,13 +282,109 @@ public class ChartController {
         chart.setGenChart(strings[0]);
         chart.setGenResult(strings[1]);
         chart.setUserId(loginUser.getId());
+        chart.setStatus(ChartConstant.SUCCEED_STATUS);
         boolean saveResult = chartService.save(chart);
         biResponse.setChartId(chart.getId());
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         return ResultUtils.success(biResponse);
     }
 
-    public String[] handlerBiResult(String chat) {
+    /**
+     * 智能分析（异步）
+     *
+     * @return {@link BaseResponse }<{@link String }>
+     * @author nx
+     */
+    @PostMapping("/gen/async")
+    public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
+                                                      GenChartByAiRequest genChartByAiRequest,
+                                                      HttpServletRequest request) throws ExecutionException {
+        User loginUser = userService.getLoginUser(request);
+        //限流
+        guavaRateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        //用户输入
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String originGoal = goal;
+        String chartType = genChartByAiRequest.getChartType();
+        String originChartType;
+        //拼接目标
+        if (StringUtils.isNotBlank(chartType)) {
+            originChartType = chartType;
+            goal = goal + ",请使用" + chartType;
+        } else {
+            originChartType = "默认";
+        }
+        //校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        //校验文件
+        checkMultipartFile(multipartFile);
+
+        //用户输入
+        StringBuilder userInput = new StringBuilder();
+        userInput.append("分析目标:{").append(goal).append("}\\n");
+        //压缩后的数据
+        String data = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append("原始数据:{").append(data).append("}\\n");
+
+        //先保存图表到数据库
+        Chart chart = new Chart();
+        chart.setName(name);
+        chart.setGoal(originGoal);
+        chart.setChartData(data);
+        chart.setChartType(originChartType);
+        chart.setUserId(loginUser.getId());
+        chart.setStatus(ChartConstant.WAIT_STATUS);
+        boolean saved = chartService.save(chart);
+        ThrowUtils.throwIf(!saved, ErrorCode.SYSTEM_ERROR, "保存失败");
+        BiResponse biResponse = new BiResponse();
+        biResponse.setChartId(chart.getId());
+        //提交异步分析任务
+        CompletableFuture.runAsync(() -> {
+            //更新状态为执行中
+            Chart updateChart = new Chart();
+            updateChart.setId(chart.getId());
+            updateChart.setStatus(ChartConstant.RUNNING_STATUS);
+            boolean updated = chartService.updateById(updateChart);
+            if (!updated) {
+                handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
+            }
+            //调用ai
+            String chat = wenXinManager.chat(userInput.toString());
+            String[] strings = handleBiResult(chat);
+            if (strings == null || strings.length < 2) {
+                handleChartUpdateError(chart.getId(), "AI生成错误");
+            }
+            Chart updateResultChart = new Chart();
+            updateResultChart.setGenChart(strings[0]);
+            updateResultChart.setGenResult(strings[1]);
+            updateResultChart.setId(chart.getId());
+            updateResultChart.setStatus(ChartConstant.SUCCEED_STATUS);
+            boolean b = chartService.updateById(updateResultChart);
+            if (!b) {
+                handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
+            } else {
+                log.error("图表分析成功, " + "图表id: " + chart.getId());
+            }
+        }, threadPoolExecutor);
+        return ResultUtils.success(biResponse);
+    }
+
+    public void handleChartUpdateError(Long chatId, String execMessage) {
+        Chart chart = new Chart();
+        chart.setStatus(ChartConstant.FAILED_STATUS);
+        chart.setId(chatId);
+        chart.setExecMessage(execMessage);
+        boolean updated = chartService.updateById(chart);
+        if (!updated) {
+            log.error("更新图表状态失败, " + "图表id: " + chatId + "," + execMessage);
+        } else {
+            log.info("更新图表状态成功, " + "图表id: " + chatId + "," + execMessage);
+        }
+    }
+
+    public String[] handleBiResult(String chat) {
         String genChart = null, genResult = null;
 
         int begin = -1, end = -1;
@@ -316,11 +409,24 @@ public class ChartController {
                 break;
             }
         }
-        log.info("数据分析结论:", genResult);
+        log.info("数据分析结论:{}", genResult);
         if (genChart == null && genResult == null) {
             log.info(chat);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "ai 响应异常");
         }
         return new String[]{genChart, genResult};
+    }
+
+    public void checkMultipartFile(MultipartFile multipartFile) {
+        //校验文件
+        long size = multipartFile.getSize();
+        String originalFilename = multipartFile.getOriginalFilename();
+        //校验文件大小
+        final long oneMb = 1024 * 1024;
+        ThrowUtils.throwIf(size > 5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
+        //校验文件后缀
+        String suffix = FileUtil.getSuffix(originalFilename);
+        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
     }
 }
