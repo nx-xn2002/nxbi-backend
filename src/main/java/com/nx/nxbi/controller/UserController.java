@@ -9,6 +9,7 @@ import com.nx.nxbi.common.ResultUtils;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
+import com.nx.nxbi.manager.SseManager;
 import com.nx.nxbi.model.dto.user.*;
 import com.nx.nxbi.model.entity.User;
 import com.nx.nxbi.model.vo.LoginUserVO;
@@ -18,10 +19,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 用户接口
@@ -35,6 +38,8 @@ public class UserController {
 
     @Resource
     private UserService userService;
+    @Resource
+    private SseManager sseManager;
 
     /**
      * 用户注册
@@ -266,5 +271,18 @@ public class UserController {
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
+    }
+
+    /**
+     * 用户获取 SseEmitter
+     *
+     * @param request request
+     * @return {@link SseEmitter }
+     * @author Ni Xiang
+     */
+    @GetMapping("/getConn")
+    public SseEmitter getConn(HttpServletRequest request) throws ExecutionException {
+        User loginUser = userService.getLoginUser(request);
+        return sseManager.getConn(loginUser.getId());
     }
 }

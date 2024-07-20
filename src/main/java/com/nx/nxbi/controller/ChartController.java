@@ -14,6 +14,7 @@ import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
 import com.nx.nxbi.manager.GuavaRateLimiterManager;
+import com.nx.nxbi.manager.SseManager;
 import com.nx.nxbi.manager.WenXinManager;
 import com.nx.nxbi.model.dto.chart.*;
 import com.nx.nxbi.model.entity.Chart;
@@ -59,6 +60,8 @@ public class ChartController {
     private GuavaRateLimiterManager guavaRateLimiterManager;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private SseManager sseManager;
 
     /**
      * 创建
@@ -348,12 +351,15 @@ public class ChartController {
             updateChart.setStatus(ChartConstant.RUNNING_STATUS);
             boolean updated = chartService.updateById(updateChart);
             if (!updated) {
+                sseManager.doChat(loginUser.getId(), "图表[" + name + "]更新图表执行中状态失败");
                 handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
             }
+            sseManager.doChat(loginUser.getId(), "图表[" + name + "]开始分析");
             //调用ai
             String chat = wenXinManager.chat(userInput.toString());
             String[] strings = handleBiResult(chat);
             if (strings == null || strings.length < 2) {
+                sseManager.doChat(loginUser.getId(), "图表[" + name + "]AI生成错误");
                 handleChartUpdateError(chart.getId(), "AI生成错误");
             }
             Chart updateResultChart = new Chart();
@@ -363,9 +369,11 @@ public class ChartController {
             updateResultChart.setStatus(ChartConstant.SUCCEED_STATUS);
             boolean b = chartService.updateById(updateResultChart);
             if (!b) {
+                sseManager.doChat(loginUser.getId(), "图表[" + name + "]更新图表成功状态失败");
                 handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
             } else {
-                log.error("图表分析成功, " + "图表id: " + chart.getId());
+                sseManager.doChat(loginUser.getId(), "图表[" + name + "]分析成功");
+                log.info("图表分析成功, " + "图表id: " + chart.getId());
             }
         }, threadPoolExecutor);
         return ResultUtils.success(biResponse);
