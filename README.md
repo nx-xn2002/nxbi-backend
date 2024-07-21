@@ -23,8 +23,9 @@
 5. Excel上传和数据的解析（Easy Excel）
 6. Swagger + Knife4j项目接口文档
 7. Hutool 工具库
-8. Guava 工具库（Guava 本地缓存、限流器和 sse 消息推送）
+8. Guava 工具库（限流器）
 9. SseEmitter 服务推送事件
+10. Caffeine 本地缓存
 
 ## 功能展示
 
