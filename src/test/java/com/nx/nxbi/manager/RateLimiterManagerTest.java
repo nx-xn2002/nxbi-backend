@@ -11,21 +11,21 @@ import java.util.concurrent.ExecutionException;
 
 @SpringBootTest
 @Slf4j
-class GuavaRateLimiterManagerTest {
+class RateLimiterManagerTest {
     @Resource
-    private GuavaRateLimiterManager guavaRateLimiterManager;
+    private RateLimiterManager rateLimiterManager;
 
     @Test
     public void test1() throws ExecutionException, InterruptedException {
         //第一次尝试请求，成功
-        guavaRateLimiterManager.doRateLimit("a");
+        rateLimiterManager.doRateLimit("a");
         log.info("请求1");
         //0.5秒内尝试请求，抛出异常
-        Assertions.assertThrows(BusinessException.class, () -> guavaRateLimiterManager.doRateLimit("a"));
+        Assertions.assertThrows(BusinessException.class, () -> rateLimiterManager.doRateLimit("a"));
         log.info("请求2");
         Thread.sleep(500);
         //0.5秒后尝试请求，成功
-        guavaRateLimiterManager.doRateLimit("a");
+        rateLimiterManager.doRateLimit("a");
         log.info("请求3");
     }
 }

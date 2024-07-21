@@ -282,7 +282,6 @@ public class UserController {
      */
     @GetMapping("/getConn")
     public SseEmitter getConn(HttpServletRequest request) throws ExecutionException {
-        User loginUser = userService.getLoginUser(request);
-        return sseManager.getConn(loginUser.getId());
+        return sseManager.getConn(userService.getLoginUser(request).getId());
     }
 }

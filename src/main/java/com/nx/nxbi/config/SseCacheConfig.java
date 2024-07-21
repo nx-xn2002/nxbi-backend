@@ -1,10 +1,7 @@
 package com.nx.nxbi.config;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.RateLimiter;
-import org.jetbrains.annotations.NotNull;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,18 +23,15 @@ public class SseCacheConfig {
 
     @Bean
     public LoadingCache<Long, SseEmitter> sseCache() {
-        return CacheBuilder.newBuilder()
+        return Caffeine.newBuilder()
                 //初始容量
                 .initialCapacity(initialCapacity)
                 //最大容量
                 .maximumSize(maximumSize)
-                .build(new CacheLoader<Long, SseEmitter>() {
-                    //加载方法，当 get 无法获取到指定的 SseEmitter 时，将其加载到缓存里
-                    @NotNull
-                    @Override
-                    public SseEmitter load(@NotNull Long key) throws Exception {
-                        return new SseEmitter(timeOut);
-                    }
-                });
+                .build(
+                        key -> {
+                            return new SseEmitter(timeOut);
+                        }
+                );
     }
 }

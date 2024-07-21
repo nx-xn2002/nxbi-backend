@@ -13,7 +13,7 @@ import com.nx.nxbi.constant.CommonConstant;
 import com.nx.nxbi.constant.UserConstant;
 import com.nx.nxbi.exception.BusinessException;
 import com.nx.nxbi.exception.ThrowUtils;
-import com.nx.nxbi.manager.GuavaRateLimiterManager;
+import com.nx.nxbi.manager.RateLimiterManager;
 import com.nx.nxbi.manager.SseManager;
 import com.nx.nxbi.manager.WenXinManager;
 import com.nx.nxbi.model.dto.chart.*;
@@ -57,7 +57,7 @@ public class ChartController {
     @Resource
     private WenXinManager wenXinManager;
     @Resource
-    private GuavaRateLimiterManager guavaRateLimiterManager;
+    private RateLimiterManager rateLimiterManager;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
     @Resource
@@ -243,7 +243,7 @@ public class ChartController {
                                                  GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) throws ExecutionException {
         User loginUser = userService.getLoginUser(request);
         //限流
-        guavaRateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        rateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         //用户输入
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
@@ -304,7 +304,7 @@ public class ChartController {
                                                       HttpServletRequest request) throws ExecutionException {
         User loginUser = userService.getLoginUser(request);
         //限流
-        guavaRateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        rateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         //用户输入
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();

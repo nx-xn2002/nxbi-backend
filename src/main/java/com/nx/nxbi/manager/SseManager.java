@@ -1,6 +1,7 @@
 package com.nx.nxbi.manager;
 
-import com.google.common.cache.LoadingCache;
+
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;

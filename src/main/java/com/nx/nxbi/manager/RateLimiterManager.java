@@ -1,9 +1,7 @@
 package com.nx.nxbi.manager;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
 import com.nx.nxbi.common.ErrorCode;
 import com.nx.nxbi.exception.BusinessException;
@@ -20,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  */
 @Service
 @Slf4j
-public class GuavaRateLimiterManager {
+public class RateLimiterManager {
     @Resource
     private LoadingCache<String, RateLimiter> rateLimiterCache;
 
