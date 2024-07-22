@@ -12,15 +12,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *
  * @author nx
  */
-// todo 如需开启 Redis，须移除 exclude 中的内容
 @SpringBootApplication(exclude = {RedisAutoConfiguration.class})
 @MapperScan("com.nx.nxbi.mapper")
 @EnableScheduling
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 public class MainApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(MainApplication.class, args);
     }
-
 }

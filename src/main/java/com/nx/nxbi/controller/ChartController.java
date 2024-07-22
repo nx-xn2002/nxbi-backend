@@ -242,6 +242,7 @@ public class ChartController {
     public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
                                                  GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) throws ExecutionException {
         User loginUser = userService.getLoginUser(request);
+        handleUserServiceQuota(loginUser);
         //限流
         rateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         //用户输入
@@ -286,6 +287,13 @@ public class ChartController {
         chart.setGenResult(strings[1]);
         chart.setUserId(loginUser.getId());
         chart.setStatus(ChartConstant.SUCCEED_STATUS);
+        loginUser = userService.getLoginUser(request);
+        handleUserServiceQuota(loginUser);
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setServiceQuota(loginUser.getServiceQuota() - 1);
+        boolean b = userService.updateById(updateUser);
+        ThrowUtils.throwIf(!b, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         boolean saveResult = chartService.save(chart);
         biResponse.setChartId(chart.getId());
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
@@ -303,6 +311,12 @@ public class ChartController {
                                                       GenChartByAiRequest genChartByAiRequest,
                                                       HttpServletRequest request) throws ExecutionException {
         User loginUser = userService.getLoginUser(request);
+        handleUserServiceQuota(loginUser);
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setServiceQuota(loginUser.getServiceQuota() - 1);
+        boolean userUpdate = userService.updateById(updateUser);
+        ThrowUtils.throwIf(!userUpdate, ErrorCode.SYSTEM_ERROR, "系统异常");
         //限流
         rateLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         //用户输入
@@ -352,7 +366,7 @@ public class ChartController {
             boolean updated = chartService.updateById(updateChart);
             if (!updated) {
                 sseManager.doChat(loginUser.getId(), "图表[" + name + "]更新图表执行中状态失败");
-                handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
+                handleChartUpdateError(chart.getId(), "更新图表执行中状态失败", loginUser);
             }
             sseManager.doChat(loginUser.getId(), "图表[" + name + "]开始分析");
             //调用ai
@@ -360,7 +374,7 @@ public class ChartController {
             String[] strings = handleBiResult(chat);
             if (strings == null || strings.length < 2) {
                 sseManager.doChat(loginUser.getId(), "图表[" + name + "]AI生成错误");
-                handleChartUpdateError(chart.getId(), "AI生成错误");
+                handleChartUpdateError(chart.getId(), "AI生成错误", loginUser);
             }
             Chart updateResultChart = new Chart();
             updateResultChart.setGenChart(strings[0]);
@@ -370,7 +384,7 @@ public class ChartController {
             boolean b = chartService.updateById(updateResultChart);
             if (!b) {
                 sseManager.doChat(loginUser.getId(), "图表[" + name + "]更新图表成功状态失败");
-                handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
+                handleChartUpdateError(chart.getId(), "更新图表成功状态失败", loginUser);
             } else {
                 sseManager.doChat(loginUser.getId(), "图表[" + name + "]分析成功");
                 log.info("图表分析成功, " + "图表id: " + chart.getId());
@@ -379,7 +393,7 @@ public class ChartController {
         return ResultUtils.success(biResponse);
     }
 
-    public void handleChartUpdateError(Long chatId, String execMessage) {
+    public void handleChartUpdateError(Long chatId, String execMessage, User user) {
         Chart chart = new Chart();
         chart.setStatus(ChartConstant.FAILED_STATUS);
         chart.setId(chatId);
@@ -389,6 +403,17 @@ public class ChartController {
             log.error("更新图表状态失败, " + "图表id: " + chatId + "," + execMessage);
         } else {
             log.info("更新图表状态成功, " + "图表id: " + chatId + "," + execMessage);
+        }
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setServiceQuota(user.getServiceQuota() + 1);
+        boolean userUpdate = userService.updateById(updateUser);
+        if (!userUpdate) {
+            log.error("回溯用户状态失败, 用户id: {}, [尝试serviceQuota {} -> {}]", user.getId(), user.getServiceQuota(),
+                    user.getServiceQuota() + 1);
+        } else {
+            log.error("回溯用户状态成功, 用户id: {}, [尝试serviceQuota {} -> {}]", user.getId(), user.getServiceQuota(),
+                    user.getServiceQuota() + 1);
         }
     }
 
@@ -436,5 +461,16 @@ public class ChartController {
         String suffix = FileUtil.getSuffix(originalFilename);
         final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
+    }
+
+    /**
+     * 检查当前用户服务使用次数
+     *
+     * @param user user
+     * @author Ni Xiang
+     */
+    public void handleUserServiceQuota(User user) {
+        ThrowUtils.throwIf(user.getServiceQuota().compareTo(0) <= 0, ErrorCode.NO_AUTH_ERROR,
+                "您的服务使用次数已用尽，请联系管理员以获取更多信息或帮助。");
     }
 }

@@ -15,6 +15,7 @@ create table if not exists user
     userName     varchar(256)                           null comment '用户昵称',
     userAvatar   varchar(1024)                          null comment '用户头像',
     userRole     varchar(256) default 'user'            not null comment '用户角色：user/admin/ban',
+    serviceQuota int          default 20                null comment '剩余使用次数',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete     tinyint      default 0                 not null comment '是否删除',

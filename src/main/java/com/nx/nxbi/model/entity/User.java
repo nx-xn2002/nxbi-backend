@@ -53,6 +53,10 @@ public class User implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+    /**
+     * 剩余使用次数
+     */
+    private Integer serviceQuota;
 
     /**
      * 是否删除
