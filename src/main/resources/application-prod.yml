@@ -4,9 +4,9 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://124.220.228.125:3306/nxbi
-    username: xxxxxx
-    password: xxxxxx
+    url: xxxxxxxxxxxxxxxxxxxxxxxxxxx
+    username: xxxxxxxxxxxxxxx
+    password: xxxxxxxxxxxxxxxxxx
 mybatis-plus:
   configuration:
     # 生产环境关闭日志
