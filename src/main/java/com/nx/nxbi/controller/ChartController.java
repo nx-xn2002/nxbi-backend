@@ -271,7 +271,7 @@ public class ChartController {
         //压缩后的数据
         String data = ExcelUtils.excelToCsv(multipartFile);
         userInput.append("原始数据:{").append(data).append("}\\n");
-
+        log.info("user input:{}", userInput);
         //开始分析
         String chat = wenXinManager.chat(userInput.toString());
         String[] strings = handleBiResult(chat);
@@ -370,6 +370,7 @@ public class ChartController {
             }
             sseManager.doChat(loginUser.getId(), "图表[" + name + "]开始分析");
             //调用ai
+            log.info("user input:{}", userInput);
             String chat = wenXinManager.chat(userInput.toString());
             String[] strings = handleBiResult(chat);
             if (strings == null || strings.length < 2) {
@@ -456,7 +457,7 @@ public class ChartController {
         String originalFilename = multipartFile.getOriginalFilename();
         //校验文件大小
         final long oneMb = 1024 * 1024;
-        ThrowUtils.throwIf(size > 5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
+        ThrowUtils.throwIf(size > 0.5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
         //校验文件后缀
         String suffix = FileUtil.getSuffix(originalFilename);
         final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
