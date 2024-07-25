@@ -287,7 +287,7 @@ public class ChartController {
         chart.setGenResult(strings[1]);
         chart.setUserId(loginUser.getId());
         chart.setStatus(ChartConstant.SUCCEED_STATUS);
-        loginUser = userService.getLoginUser(request);
+
         handleUserServiceQuota(loginUser);
         User updateUser = new User();
         updateUser.setId(loginUser.getId());
