@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.annotation.Resource;
-import java.util.concurrent.ExecutionException;
 
 /**
  * sse服务
@@ -29,7 +28,7 @@ public class SseManager {
      * @return {@link SseEmitter }
      * @author Ni Xiang
      */
-    public SseEmitter getConn(Long userId) throws ExecutionException {
+    public SseEmitter getConn(Long userId) {
         SseEmitter emitter = sseCache.get(userId);
         // 注册超时回调，超时后触发
         emitter.onTimeout(() -> {
@@ -63,7 +62,7 @@ public class SseManager {
             SseEmitter emitter = getConn(userId);
             emitter.send(message);
         } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息发送失败");
+            log.error("消息发送失败", new BusinessException(ErrorCode.SYSTEM_ERROR, "消息发送失败"));
         }
     }
 }

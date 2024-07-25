@@ -457,10 +457,10 @@ public class ChartController {
         String originalFilename = multipartFile.getOriginalFilename();
         //校验文件大小
         final long oneMb = 1024 * 1024;
-        ThrowUtils.throwIf(size > 0.5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 5 MB");
+        ThrowUtils.throwIf(size > 0.5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 0.5 MB");
         //校验文件后缀
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
+        final List<String> validFileSuffixList = Arrays.asList("xlsx");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
     }
 
