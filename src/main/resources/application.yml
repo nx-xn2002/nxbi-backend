@@ -46,8 +46,8 @@ mybatis-plus:
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
 wenxin:
-  api-key: xxxxx
-  secret-key: xxxxx
+  api-key: xxxxxx
+  secret-key: xxxxxx
 
 knife4j:
   enable: true
@@ -55,8 +55,8 @@ knife4j:
     language: zh-CN
   basic:
     enable: true
-    username: xxxxx
-    password: xxxxx
+    username: xxxxxx
+    password: xxxxxx
 
 # 限流器缓存配置
 rate-limiter:
@@ -86,3 +86,16 @@ thread-pool:
   keep-alive-time: 30
   # 任务队列大小
   work-queue-size: 10
+
+email-code:
+  sender-address: xxxxxx
+  auth-code: xxxxxx
+  cache:
+    # 初始容量
+    initial-capacity: 20
+    # 最大容量
+    maximum-size: 200
+    # 过期时间（秒）
+    time-out: 300
+
+
