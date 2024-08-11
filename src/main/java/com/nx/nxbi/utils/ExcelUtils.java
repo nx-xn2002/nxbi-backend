@@ -2,6 +2,7 @@ package com.nx.nxbi.utils;
 
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,16 @@ public class ExcelUtils {
         //读取数据
         List<Map<Integer, String>> list = null;
         try {
+            String originalFilename = multipartFile.getOriginalFilename();
+            String suffix = FileUtil.getSuffix(originalFilename);
+            ExcelTypeEnum excelType = null;
+            if ("xlsx".equals(suffix)) {
+                excelType = ExcelTypeEnum.XLSX;
+            } else {
+                excelType = ExcelTypeEnum.XLS;
+            }
             list = EasyExcel.read(multipartFile.getInputStream())
-                    .excelType(ExcelTypeEnum.XLSX)
+                    .excelType(excelType)
                     .sheet()
                     .headRowNumber(0)
                     .doReadSync();
@@ -42,7 +51,8 @@ public class ExcelUtils {
         StringBuilder stringBuilder = new StringBuilder();
         //读取表头
         LinkedHashMap<Integer, String> headerMap = (LinkedHashMap<Integer, String>) list.get(0);
-        List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
+        List<String> headerList =
+                headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
         stringBuilder.append(StringUtils.join(headerList, ",")).append("\\n");
         for (int i = 1; i < list.size(); i++) {
             LinkedHashMap<Integer, String> dataMap = (LinkedHashMap<Integer, String>) list.get(i);

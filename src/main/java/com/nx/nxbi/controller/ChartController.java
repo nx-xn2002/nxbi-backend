@@ -1,6 +1,7 @@
 package com.nx.nxbi.controller;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.nx.nxbi.annotation.AuthCheck;
@@ -394,6 +395,27 @@ public class ChartController {
         return ResultUtils.success(biResponse);
     }
 
+//    /**
+//     * upload excel
+//     *
+//     * @param multipartFile multipart file
+//     * @param request       request
+//     * @return {@link BaseResponse }<{@link String }>
+//     * @author nx-xn2002
+//     */
+//    @PostMapping("/upload")
+//    public BaseResponse<String> uploadExcel(@RequestPart("file") MultipartFile multipartFile,
+//                                            HttpServletRequest request) throws ExecutionException {
+//        User loginUser = userService.getLoginUser(request);
+//        //限流
+//        rateLimiterManager.doRateLimit("uploadExcel" + loginUser.getId());
+//        String s = IdUtil.fastSimpleUUID();
+//        String chartName = loginUser.getId() + "-" + s;
+//
+//
+//        return ResultUtils.success(chartName);
+//    }
+
     public void handleChartUpdateError(Long chatId, String execMessage, User user) {
         Chart chart = new Chart();
         chart.setStatus(ChartConstant.FAILED_STATUS);
@@ -460,7 +482,7 @@ public class ChartController {
         ThrowUtils.throwIf(size > 0.5 * oneMb, ErrorCode.PARAMS_ERROR, "文件超过 0.5 MB");
         //校验文件后缀
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx");
+        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
     }
 
