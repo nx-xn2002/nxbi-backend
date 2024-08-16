@@ -26,4 +26,30 @@
         status,execMessage,userId,
         createTime,updateTime,isDelete
     </sql>
+    <!-- 动态创建表 -->
+    <update id="createTable" parameterType="map">
+        <if test="tableName != null and tableName.length() > 0">
+            create table if not exists ${tableName} (
+            <if test="columns != null and columns.size > 0">chart_column_index INT AUTO_INCREMENT PRIMARY KEY,</if>
+            <foreach collection="columns" item="column" index="index" separator=",">
+                ${column} VARCHAR(255)
+            </foreach>
+            )
+        </if>
+    </update>
+    <!-- 动态插入数据 -->
+    <update id="insertData" parameterType="map">
+        insert into ${tableName} (
+        <foreach collection="columns" item="column" separator=",">
+            ${column}
+        </foreach>
+        ) values
+        <foreach collection="data" item="row" separator=",">
+            ( <foreach collection="row" item="value" separator=",">#{value}</foreach> )
+        </foreach>
+    </update>
+    <select id="selectAll" parameterType="String" resultType="java.util.LinkedHashMap">
+        SELECT *
+        FROM ${tableName}
+    </select>
 </mapper>
