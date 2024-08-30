@@ -26,8 +26,9 @@
         status,execMessage,userId,
         createTime,updateTime,isDelete
     </sql>
+
     <!-- 动态创建表 -->
-    <update id="createTable" parameterType="map">
+    <update id="createTable" parameterType="com.nx.nxbi.model.entity.DataChart">
         <if test="tableName != null and tableName.length() > 0">
             create table if not exists ${tableName} (
             <if test="columns != null and columns.size > 0">chart_column_index INT AUTO_INCREMENT PRIMARY KEY,</if>
@@ -38,7 +39,7 @@
         </if>
     </update>
     <!-- 动态插入数据 -->
-    <update id="insertData" parameterType="map">
+    <update id="insertData" parameterType="com.nx.nxbi.model.entity.DataChart">
         insert into ${tableName} (
         <foreach collection="columns" item="column" separator=",">
             ${column}

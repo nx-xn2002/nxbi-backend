@@ -2,6 +2,7 @@ package com.nx.nxbi.mapper;
 
 import com.nx.nxbi.model.entity.Chart;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.nx.nxbi.model.entity.DataChart;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,20 +16,20 @@ import java.util.List;
  */
 public interface ChartMapper extends BaseMapper<Chart> {
     /**
-     * 动态创建表
+     * create table by data chart
      *
-     * @param params params
+     * @param dataChart data chart
      * @author nx-xn2002
      */
-    void createTable(Map<String, Object> params);
+    void createTable(DataChart dataChart);
 
     /**
      * 插入数据
      *
-     * @param params params
+     * @param dataChart data chart
      * @author nx-xn2002
      */
-    void insertData(Map<String, Object> params);
+    void insertData(DataChart dataChart);
 
     /**
      * select all
